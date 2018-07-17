@@ -39,8 +39,7 @@ contract BlocVehicle is ERC20 {
       }
 
       // Destory tokens
-      function burnTokens(address burnedAddress, address requireAddress, uint256 amount) onlyOwner public {
-        require(owner == requireAddress);
+      function burnTokens(address burnedAddress, uint256 amount) onlyOwner public {
         require(burnedAddress != address(0));
         require(amount > 0);
         require(amount <= balances[burnedAddress]);
@@ -71,7 +70,7 @@ contract BlocVehicle is ERC20 {
         //Check if the sender has enough
         require(balances[_from] >= _value);
         //Check for overflows
-        require(balances[_to] + _value >= balances[_to]);
+        require(balances[_to].add(_value)  >= balances[_to]);
         //Check if sender, recipient is frozen
         require(!frozenAccount[_from]);
         require(!frozenAccount[_to]);
@@ -128,6 +127,14 @@ contract BlocVehicle is ERC20 {
         }
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
+      }
+
+      // Allow _spender to withdraw from your account, multiple times, up to the _value amount.
+      // If this function is called again it overwrites the current allowance with _value.
+      function approve(address _spender, uint256 _value) public returns (bool success) {
+          allowed[msg.sender][_spender] = _value;
+          emit Approval(msg.sender, _spender, _value);
+          return true;
       }
 
       function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {

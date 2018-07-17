@@ -5,7 +5,7 @@ import "../BlocVehicle.sol";
 import "./lib/CappedCrowdsale.sol";
 import "./lib/Pausable.sol";
 
-contract BlocVehiclePresale is CappedCrowdsale, Pausable {
+contract BlocVehicleMainsale is CappedCrowdsale, Pausable {
   using SafeMath for uint256;
 
   struct lock {
@@ -18,16 +18,17 @@ contract BlocVehiclePresale is CappedCrowdsale, Pausable {
   // The token being sold
   BlocVehicle public token;
 
-  // crowdsale softcap
-  uint256 public softcap;
 
-  constructor(uint256 _startTime, uint256 _endTime, uint256 _rate, BlocVehicle _token, address _wallet, uint256 _cap, uint256 _softcap) public
+  // Maximum amount raised
+  uint256 public maxAmount;
+
+  constructor(uint256 _startTime, uint256 _endTime, uint256 _rate, BlocVehicle _token, address _wallet, uint256 _cap, uint256 _maxAmount) public
     Crowdsale(_startTime, _endTime, _rate, _wallet, _cap)
     CappedCrowdsale(_cap.mul(1 ether))
   {
     require(_token != address(0));
     token = _token;
-    softcap = _softcap.mul(1 ether);
+    maxAmount = _maxAmount.mul(1 ether);
   }
 
   //Function for withdrawing toekns to buyers
@@ -52,6 +53,7 @@ contract BlocVehiclePresale is CappedCrowdsale, Pausable {
    */
   function buyTokens() whenNotPaused public payable {
     require(msg.sender != address(0));
+    require(msg.value <= maxAmount);
 
     address beneficiary = msg.sender;
     uint256 weiAmount = msg.value;
@@ -59,7 +61,7 @@ contract BlocVehiclePresale is CappedCrowdsale, Pausable {
     _preValidatePurchase(beneficiary, weiAmount);
 
     // calculate token amount to be created
-    uint256 tokens = _getPreTokenAmount(weiAmount);
+    uint256 tokens = _getMainTokenAmount(weiAmount);
 
     //token transfer
     require(token.transfer(beneficiary, tokens));
